@@ -16,7 +16,6 @@ use rodio::{Decoder, OutputStream, source::Source};
 use std::fs::File;
 use std::io::BufReader;
 use std::thread;
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 use framebuffer::Framebuffer;
