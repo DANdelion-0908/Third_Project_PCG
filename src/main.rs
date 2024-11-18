@@ -207,8 +207,8 @@ fn main() {
             translation: Vec3::new(0.0, 0.0, 0.0), // El Sol en el centro
             rotation: Vec3::new(0.0, 0.0, 0.0),
             scale: 1.5, // Tamaño mayor para el Sol
-            vertex_array: Obj::load("assets/models/sun.obj")
-                .expect("Failed to load sun.obj")
+            vertex_array: Obj::load("assets/models/sphere.obj")
+                .expect("Failed to load sphere.obj")
                 .get_vertex_array(),
             shader_selection: 0, // Shader para el Sol
         },
@@ -216,7 +216,7 @@ fn main() {
             translation: Vec3::new(3.0, 0.0, 0.0), // Posición inicial del planeta
             rotation: Vec3::new(0.0, 0.0, 0.0),
             scale: 0.5, // Tamaño del planeta
-            vertex_array: Obj::load("assets/models/sun.obj")
+            vertex_array: Obj::load("assets/models/sphere.obj")
                 .expect("Failed to load planet.obj")
                 .get_vertex_array(),
             shader_selection: 1, // Shader para el planeta
@@ -225,7 +225,7 @@ fn main() {
             translation: Vec3::new(4.0, 0.0, 0.0), // Posición inicial del planeta
             rotation: Vec3::new(0.0, 0.0, 0.0),
             scale: 0.5, // Tamaño del planeta
-            vertex_array: Obj::load("assets/models/sun.obj")
+            vertex_array: Obj::load("assets/models/sphere.obj")
                 .expect("Failed to load planet.obj")
                 .get_vertex_array(),
             shader_selection: 2, // Shader para el planeta
@@ -234,7 +234,7 @@ fn main() {
             translation: Vec3::new(6.0, 0.0, 0.0), // Posición inicial del planeta
             rotation: Vec3::new(0.0, 0.0, 0.0),
             scale: 0.5, // Tamaño del planeta
-            vertex_array: Obj::load("assets/models/sun.obj")
+            vertex_array: Obj::load("assets/models/sphere.obj")
                 .expect("Failed to load planet.obj")
                 .get_vertex_array(),
             shader_selection: 3, // Shader para el planeta
@@ -243,7 +243,7 @@ fn main() {
             translation: Vec3::new(8.0, 0.0, 0.0), // Posición inicial del planeta
             rotation: Vec3::new(0.0, 0.0, 0.0),
             scale: 0.5, // Tamaño del planeta
-            vertex_array: Obj::load("assets/models/sun.obj")
+            vertex_array: Obj::load("assets/models/sphere.obj")
                 .expect("Failed to load planet.obj")
                 .get_vertex_array(),
             shader_selection: 4, // Shader para el planeta
@@ -252,7 +252,7 @@ fn main() {
             translation: Vec3::new(10.0, 0.0, 0.0), // Posición inicial del planeta
             rotation: Vec3::new(0.0, 0.0, 0.0),
             scale: 0.5, // Tamaño del planeta
-            vertex_array: Obj::load("assets/models/sun.obj")
+            vertex_array: Obj::load("assets/models/sphere.obj")
                 .expect("Failed to load planet.obj")
                 .get_vertex_array(),
             shader_selection: 5, // Shader para el planeta
