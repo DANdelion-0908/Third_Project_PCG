@@ -46,6 +46,8 @@ pub fn fragment_shader(fragment: &Fragment, uniforms: &Uniforms, shader_type: &s
       "lava" => lava_shader(fragment, uniforms),
       "ice" => ice_shader(fragment, uniforms),
       "jupiter" => jupiter_shader(fragment, uniforms),
+      "ring" => ring_shader(fragment, uniforms),
+      "metal" => metal_shader(fragment, uniforms),
       _ => combined_shader(fragment, uniforms), // Default shader
   }
 }
@@ -147,6 +149,23 @@ fn cloud_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   final_color * fragment.intensity
 }
 
+fn metal_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let position = fragment.vertex_position;
+  let normal = fragment.normal.normalize();
+
+  // Luz direccional
+  let light_dir = Vec3::new(0.5, 0.5, 1.0).normalize();
+  let dot_product = normal.dot(&light_dir).max(0.0);
+
+  // Colores base
+  let base_color = Color::new(100, 100, 120); // Gris metálico
+  let highlight_color = Color::new(220, 220, 255); // Azul brillante
+
+  // Mezclar en función del ángulo con la luz
+  base_color.lerp(&highlight_color, dot_product) * fragment.intensity
+}
+
+
 fn jupiter_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   let zoom = 100.0;  // to move our values 
   let x = fragment.vertex_position.x;
@@ -184,6 +203,31 @@ fn jupiter_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   };
 
   final_color * fragment.intensity
+}
+
+fn ring_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+  let z = fragment.vertex_position.z;
+
+  // Coordenadas polares
+  let distance = (x.powi(2) + y.powi(2)).sqrt();
+  let angle = y.atan2(x);
+
+  // Parámetros del anillo
+  let ring_width = 0.02; // Ancho del anillo
+  let ring_spacing = 0.08; // Espaciado entre anillos
+
+  // Crear patrón de anillos
+  let ring_pattern = ((distance % ring_spacing) / ring_width).abs();
+  let ring_intensity = if ring_pattern < 1.0 { 1.0 - ring_pattern } else { 0.0 };
+
+  // Definir colores del anillo y del planeta
+  let ring_color = Color::new(200, 200, 200); // Gris para los anillos
+  let planet_color = Color::new(100, 50, 200); // Morado para el planeta
+
+  // Interpolar entre el color del planeta y el de los anillos
+  ring_color.lerp(&planet_color, 1.0 - ring_intensity) * fragment.intensity
 }
 
 

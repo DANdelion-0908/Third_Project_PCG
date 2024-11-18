@@ -12,6 +12,13 @@ mod fragment;
 mod shaders;
 mod camera;
 
+use rodio::{Decoder, OutputStream, source::Source};
+use std::fs::File;
+use std::io::BufReader;
+use std::thread;
+use std::sync::mpsc;
+use std::sync::Arc;
+use std::sync::Mutex;
 use framebuffer::Framebuffer;
 use vertex::Vertex;
 use obj::Obj;
@@ -27,6 +34,14 @@ pub struct Uniforms {
     viewport_matrix: Mat4,
     time: u32,
     noise: FastNoiseLite
+}
+
+pub struct Planet {
+    translation: Vec3,
+    rotation: Vec3,
+    scale: f32,
+    vertex_array: Vec<Vertex>,
+    shader_selection: u32,
 }
 
 fn create_noise() -> FastNoiseLite {
@@ -100,6 +115,23 @@ fn create_viewport_matrix(width: f32, height: f32) -> Mat4 {
     )
 }
 
+fn play_music(file_path: &str, stop_signal: Arc<Mutex<bool>>) {
+    // Crea un nuevo stream de salida
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+
+    // Abre el archivo de audio
+    let file = File::open(file_path).unwrap();
+    let source = Decoder::new(BufReader::new(file)).unwrap();
+
+    // Reproduce la música
+    stream_handle.play_raw(source.convert_samples()).unwrap();
+
+    // Mantén el programa corriendo mientras se reproduce la música
+    while !*stop_signal.lock().unwrap() {
+        thread::sleep(std::time::Duration::from_millis(100));
+    }
+}
+
 fn render(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex], shader_selection: u32) {
     // Vertex Shader
     let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
@@ -141,6 +173,10 @@ fn render(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Ve
                 shaded_color = fragment_shader(&fragment, &uniforms, "cloud");
             } else if shader_selection == 3 {
                 shaded_color = fragment_shader(&fragment, &uniforms, "jupiter");
+            } else if shader_selection == 4{
+                shaded_color = fragment_shader(&fragment, &uniforms, "ring");
+            } else if shader_selection == 5{
+                shaded_color = fragment_shader(&fragment, &uniforms, "metal");
             }
             let color = shaded_color.to_hex();
             framebuffer.set_current_color(color);
@@ -150,6 +186,14 @@ fn render(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Ve
 }
 
 fn main() {
+    let file_path = "assets/music/Good Egg Galaxy  Super Mario Galaxy.mp3";
+    let stop_signal = Arc::new(Mutex::new(false));
+    let stop_signal_clone = Arc::clone(&stop_signal);
+
+    let music_thread = thread::spawn(move || {
+        play_music(file_path, stop_signal_clone);
+    });
+
     let window_width = 800;
     let window_height = 600;
     let framebuffer_width = 800;
@@ -157,9 +201,68 @@ fn main() {
     let frame_delay = Duration::from_millis(16);
     let mut shader_selection = 0;
 
+    // Configuración de planetas
+    let mut planets = vec![
+        Planet {
+            translation: Vec3::new(0.0, 0.0, 0.0), // El Sol en el centro
+            rotation: Vec3::new(0.0, 0.0, 0.0),
+            scale: 1.5, // Tamaño mayor para el Sol
+            vertex_array: Obj::load("assets/models/sun.obj")
+                .expect("Failed to load sun.obj")
+                .get_vertex_array(),
+            shader_selection: 0, // Shader para el Sol
+        },
+        Planet {
+            translation: Vec3::new(3.0, 0.0, 0.0), // Posición inicial del planeta
+            rotation: Vec3::new(0.0, 0.0, 0.0),
+            scale: 0.5, // Tamaño del planeta
+            vertex_array: Obj::load("assets/models/sun.obj")
+                .expect("Failed to load planet.obj")
+                .get_vertex_array(),
+            shader_selection: 1, // Shader para el planeta
+        },
+        Planet {
+            translation: Vec3::new(4.0, 0.0, 0.0), // Posición inicial del planeta
+            rotation: Vec3::new(0.0, 0.0, 0.0),
+            scale: 0.5, // Tamaño del planeta
+            vertex_array: Obj::load("assets/models/sun.obj")
+                .expect("Failed to load planet.obj")
+                .get_vertex_array(),
+            shader_selection: 2, // Shader para el planeta
+        },
+        Planet {
+            translation: Vec3::new(6.0, 0.0, 0.0), // Posición inicial del planeta
+            rotation: Vec3::new(0.0, 0.0, 0.0),
+            scale: 0.5, // Tamaño del planeta
+            vertex_array: Obj::load("assets/models/sun.obj")
+                .expect("Failed to load planet.obj")
+                .get_vertex_array(),
+            shader_selection: 3, // Shader para el planeta
+        },
+        Planet {
+            translation: Vec3::new(8.0, 0.0, 0.0), // Posición inicial del planeta
+            rotation: Vec3::new(0.0, 0.0, 0.0),
+            scale: 0.5, // Tamaño del planeta
+            vertex_array: Obj::load("assets/models/sun.obj")
+                .expect("Failed to load planet.obj")
+                .get_vertex_array(),
+            shader_selection: 4, // Shader para el planeta
+        },
+        Planet {
+            translation: Vec3::new(10.0, 0.0, 0.0), // Posición inicial del planeta
+            rotation: Vec3::new(0.0, 0.0, 0.0),
+            scale: 0.5, // Tamaño del planeta
+            vertex_array: Obj::load("assets/models/sun.obj")
+                .expect("Failed to load planet.obj")
+                .get_vertex_array(),
+            shader_selection: 5, // Shader para el planeta
+        },
+        // Puedes añadir más planetas aquí
+    ];
+
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
     let mut window = Window::new(
-        "Presiona números del pad numérico para cambiar de shader",
+        "Simulador del sistema planetario",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -169,22 +272,15 @@ fn main() {
     window.set_position(500, 500);
     window.update();
 
-    framebuffer.set_background_color(0x333355);
+    framebuffer.set_background_color(0x000);
 
-    // model position
-    let translation = Vec3::new(0.0, 0.0, 0.0);
-    let rotation = Vec3::new(0.0, 0.0, 0.0);
-    let scale = 1.0f32;
-
-    // camera parameters
+    // Parámetros de la cámara
     let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, 5.0),
+        Vec3::new(0.0, 0.0, 10.0), // Alejamos la cámara para ver todo el sistema
         Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0)
+        Vec3::new(0.0, 1.0, 0.0),
     );
 
-    let obj = Obj::load("assets/models/sun.obj").expect("Failed to load obj");
-    let vertex_arrays = obj.get_vertex_array(); 
     let mut time = 0;
 
     while window.is_open() {
@@ -198,22 +294,49 @@ fn main() {
 
         framebuffer.clear();
 
-        let noise = create_noise();
-        let model_matrix = create_model_matrix(translation, scale, rotation);
+        // Matrices de vista y proyección
         let view_matrix = create_view_matrix(camera.eye, camera.center, camera.up);
         let projection_matrix = create_perspective_matrix(window_width as f32, window_height as f32);
-        let viewport_matrix = create_viewport_matrix(framebuffer_width as f32, framebuffer_height as f32);
-        let uniforms = Uniforms { 
-            model_matrix, 
-            view_matrix, 
-            projection_matrix, 
-            viewport_matrix,
-            time,
-            noise
-        };
+        let viewport_matrix = create_viewport_matrix(
+            framebuffer_width as f32,
+            framebuffer_height as f32,
+        );
 
-        framebuffer.set_current_color(0xFFDDDD);
-        render(&mut framebuffer, &uniforms, &vertex_arrays, shader_selection);
+        for (index, planet) in planets.iter_mut().enumerate() {
+            if index == 0 {
+                // El Sol no se mueve
+                planet.rotation.y += 0.02; // Rotación del Sol
+            } else {
+                // Los planetas orbitan alrededor del Sol
+                let angle = time as f32 * 0.01 * (index as f32); // Ángulo para la órbita
+                let distance = 3.0 + (index as f32) * 2.0; // Distancia desde el Sol
+                planet.translation.x = distance * angle.cos();
+                planet.translation.z = distance * angle.sin();
+                planet.rotation.y += 0.02; // Rotación del planeta
+            }
+
+            let model_matrix = create_model_matrix(
+                planet.translation,
+                planet.scale,
+                planet.rotation,
+            );
+
+            let uniforms = Uniforms {
+                model_matrix,
+                view_matrix,
+                projection_matrix,
+                viewport_matrix,
+                time,
+                noise: create_noise(),
+            };
+
+            render(
+                &mut framebuffer,
+                &uniforms,
+                &planet.vertex_array,
+                planet.shader_selection,
+            );
+        }
 
         window
             .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
@@ -221,6 +344,9 @@ fn main() {
 
         std::thread::sleep(frame_delay);
     }
+
+    *stop_signal.lock().unwrap() = true;
+    music_thread.join().unwrap();
 }
 
 fn handle_input(window: &Window, camera: &mut Camera, mut shader_selection: u32) -> u32 {

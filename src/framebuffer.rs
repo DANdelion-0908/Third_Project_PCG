@@ -1,4 +1,3 @@
-
 pub struct Framebuffer {
     pub width: usize,
     pub height: usize,
@@ -7,6 +6,17 @@ pub struct Framebuffer {
     background_color: u32,
     current_color: u32,
 }
+
+// Implementación del método set_pixel
+impl Framebuffer {
+    pub fn set_pixel(&mut self, x: usize, y: usize, color: u32) {
+        if x < self.width && y < self.height {
+            let index = y * self.width + x;
+            self.buffer[index] = color;
+        }
+    }
+}
+
 
 impl Framebuffer {
     pub fn new(width: usize, height: usize) -> Self {
