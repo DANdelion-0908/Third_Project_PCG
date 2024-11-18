@@ -257,7 +257,6 @@ fn main() {
                 .get_vertex_array(),
             shader_selection: 5, // Shader para el planeta
         },
-        // Puedes añadir más planetas aquí
     ];
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
@@ -276,7 +275,7 @@ fn main() {
 
     // Parámetros de la cámara
     let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, 10.0), // Alejamos la cámara para ver todo el sistema
+        Vec3::new(0.0, 0.0, 30.0), // Alejamos la cámara para ver todo el sistema
         Vec3::new(0.0, 0.0, 0.0),
         Vec3::new(0.0, 1.0, 0.0),
     );
